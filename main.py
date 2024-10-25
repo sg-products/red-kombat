@@ -6,6 +6,7 @@ from discord.ext import commands
 import random
 import sys
 import json
+from asyncio import sleep
 
 # Загрузка данных пользователей из файла JSON
 def load_user_data():
@@ -46,10 +47,17 @@ status_bot_text = "Статус бота: :x: Проект временно пр
 # Делаем префикс
 bot = commands.Bot(command_prefix='.', intents=intents, help_command=None)
 
+# Место для хранения даты о пользователе
+user_data = {}
 # Делаем ивент что-бы узнать когда бот будет готов к работе
 @bot.event
 async def on_ready():
     print(f'Тихо зашёл как {bot.user}')
+    
+    while True:
+          await bot.change_presence(status=discord.Status.online, activity=discord.Game("Собираем деньги на мозги для реда"))
+          await sleep(15)
+          await bot.change_presence(status=discord.Status.online, activity=discord.Game("Мой префикс: ."))
 
 # Делаем комманду для зарабатывания $REDCOIN
 @bot.command()
@@ -68,7 +76,7 @@ async def click(ctx):
 async def levelup(ctx):
     user_id = ctx.author.id
     if user_id not in user_data:
-        user_data[user_id] = {"points": 0, "level": 1}
+        user_data[user_id] = {"points": 0, "level": 1, "zvanie": 'Обычный'}
     
     if user_data[user_id]["points"] >= user_data[user_id]["level"] * 10:
         user_data[user_id]["points"] -= user_data[user_id]["level"] * 10
@@ -84,7 +92,8 @@ async def stats(ctx):
     if user_id in user_data:
         points = user_data[user_id]["points"]
         level = user_data[user_id]["level"]
-        await ctx.send(f'У вас {points} $REDCOIN и уровень {level}.')
+        zvanie = user_data[user_id]["zvanie"]
+        await ctx.send(f'Ваш баланс $REDCOIN: {points}\nВаш уровень: {level}\nВаши звания: {zvanie}')
     else:
         await ctx.send(f'У вас еще нет $REDCOIN. Используйте команду **.click**!')
 
@@ -133,8 +142,7 @@ async def invite(ctx):
 # Делаем комманду для показа авторов проекта
 @bot.command()
 async def credits(ctx):
-	await ctx.send(f'Кодеры: sgysh3nka, dudethatwas_79324, squake.xp, вся комманда SG-Products.')
-	await ctx.send(f'Особенное спасибо: MSC Empire, kartohka000')
+	await ctx.send(f'Кодеры: sgysh3nka, dudethatwas_79324, squake.xp, вся комманда SG-Products.\nОсобенное спасибо: MSC Empire, kartohka000')
 
 # Делаем комманду для узнавания статуса бота
 @bot.command()
@@ -165,12 +173,45 @@ async def say(ctx, *, message):
 # Добавляем деньги самому себе >:)
 @bot.command()
 async def addown(ctx, money):
+    s = ctx.author
+    if not str(s.id) == owner_id:
+        await ctx.send('Вы не можете использовать эту команду.')
+        return
+    
     money = int(money)
     user_data[owner_id]["points"] += money
     
     save_user_data()
     
     await ctx.send(f'Успешно добавлено {money} $REDCOIN к балансу.')
+
+# Делаем магазин
+@bot.command()
+async def shop(ctx):
+	await ctx.send(f'Добро пожаловать в бункер реда!\nВот наши товары:\n1. Звание "Отчим реда" - 10 $REDCOIN\n2. Звание "Босс гхс" - 100 $REDCOIN\n-# p.s: что-бы что-то купить напиши **.buy** и номер предмета.')
+
+# Покупка званий
+@bot.command()
+async def buy(ctx, zvaniebuy: int):
+	user_id = ctx.author.id
+	if zvaniebuy == '1':
+		if user_data[user_id]["points"] >= '10':
+			user_data[user_id]["points"] -= '10'
+			user_data[user_id]["zvanie"] == 'Отчим реда'
+				
+			await ctx.send(f'Вы успешно купили звание "Отчим реда"!')
+		else:
+			await ctx.send(f'Не достаточно средств для покупки звания "Отчим реда".')
+	elif zvaniebuy == '2':
+		if user_data[user_id]["points"] >= '100':
+			user_data[user_id]["points"] -= '100'
+			user_data[user_id]["zvanie"] == 'Босс гхс'
+			
+			save_user_data()
+			
+			await ctx.send(f'Вы успешно купили звание "Босс гхс"!')
+		else:
+			await ctx.send(f'Не достаточно средств для покупки звания "Босс гхс".')
 
 # Выходим
 @bot.event
