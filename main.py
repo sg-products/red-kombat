@@ -4,7 +4,33 @@
 import discord
 from discord.ext import commands
 import random
+import sys
+import json
 
+# Загрузка данных пользователей из файла JSON
+def load_user_data():
+    global user_data
+    try:
+        with open('user_data.json', 'r') as file:
+            user_data = json.load(file)
+    except FileNotFoundError:
+        user_data = {}
+        
+load_user_data()
+
+# Сохранение данных пользователей в файл JSON
+def save_user_data():
+    with open('user_data.json', 'w') as file:
+        json.dump(user_data, file)
+
+# Обновление данных пользователя в файле JSON
+def update_user_data():
+    save_user_data()
+
+# Токен, префикс и тд.
+prefix = '.'
+token = 'your_token_here'
+owner_id = '916723526696841217'
 
 # Импортируем интенты
 intents = discord.Intents.default()
@@ -18,10 +44,7 @@ status_listing = False
 status_bot_text = "Статус бота: :x: Проект временно приостановлен для получения обновлений. Причина: Блокировка Discord в Российской Федерации."
 
 # Делаем префикс
-bot = commands.Bot(command_prefix='.', intents=intents)
-
-# Место для хранения даты о пользователе
-user_data = {}
+bot = commands.Bot(command_prefix='.', intents=intents, help_command=None)
 
 # Делаем ивент что-бы узнать когда бот будет готов к работе
 @bot.event
@@ -110,7 +133,7 @@ async def invite(ctx):
 # Делаем комманду для показа авторов проекта
 @bot.command()
 async def credits(ctx):
-	await ctx.send(f'Кодеры: sgysh3nka, dudethatwas_79324, вся комманда SG-Products.')
+	await ctx.send(f'Кодеры: sgysh3nka, dudethatwas_79324, squake.xp, вся комманда SG-Products.')
 	await ctx.send(f'Особенное спасибо: MSC Empire, kartohka000')
 
 # Делаем комманду для узнавания статуса бота
@@ -125,8 +148,8 @@ async def ghs_ban(ctx, member : discord.Member, *, reason):
 	if not s.guild_permissions.administrator:
 		return await ctx.send(f'<@{s.id}> у тебя нету прав!')
 	if reason == None:
-		await member.kick(reason="Причина для бана пидора с гхс не указана.")
-	await member.kick(reason=reason)
+		await member.ban(reason="Причина для бана пидора с гхс не указана.")
+	await member.ban(reason=reason)
 	await ctx.send(f'Пидор с гхс был успешно кикнут.')
 	print("Был забанен пидор с гхс! Причина:" ,reason, "Кто сделал:" ,s)
 
@@ -139,6 +162,21 @@ async def say(ctx, *, message):
 	await ctx.send(message)
 	print("Было отправлено сообщение через бота (say)! Сообщение:" ,message, "Кто сделал:" ,s)
 
+# Добавляем деньги самому себе >:)
+@bot.command()
+async def addown(ctx, money):
+    money = int(money)
+    user_data[owner_id]["points"] += money
+    
+    save_user_data()
+    
+    await ctx.send(f'Успешно добавлено {money} $REDCOIN к балансу.')
+
+# Выходим
+@bot.event
+async def on_disconnect():
+    update_user_data()
+    sys.exit()
 
 # Запускаем наше чудо
-bot.run('your_token_here')
+bot.run(token)
