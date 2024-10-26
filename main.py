@@ -5,28 +5,7 @@ import discord
 from discord.ext import commands
 import random
 import sys
-import json
 from asyncio import sleep
-
-# Загрузка данных пользователей из файла JSON
-def load_user_data():
-    global user_data
-    try:
-        with open('user_data.json', 'r') as file:
-            user_data = json.load(file)
-    except FileNotFoundError:
-        user_data = {}
-        
-load_user_data()
-
-# Сохранение данных пользователей в файл JSON
-def save_user_data():
-    with open('user_data.json', 'w') as file:
-        json.dump(user_data, file)
-
-# Обновление данных пользователя в файле JSON
-def update_user_data():
-    save_user_data()
 
 # Токен, префикс и тд.
 prefix = '.'
@@ -45,7 +24,7 @@ status_listing = False
 status_bot_text = "Статус бота: :x: Проект временно приостановлен для получения обновлений. Причина: Блокировка Discord в Российской Федерации."
 
 # Делаем префикс
-bot = commands.Bot(command_prefix='.', intents=intents, help_command=None)
+bot = commands.Bot(command_prefix=prefix, intents=intents, help_command=None)
 
 # Место для хранения даты о пользователе
 user_data = {}
@@ -181,7 +160,6 @@ async def addown(ctx, money):
     money = int(money)
     user_data[owner_id]["points"] += money
     
-    save_user_data()
     
     await ctx.send(f'Успешно добавлено {money} $REDCOIN к балансу.')
 
@@ -207,7 +185,6 @@ async def buy(ctx, zvaniebuy: int):
 			user_data[user_id]["points"] -= '100'
 			user_data[user_id]["zvanie"] == 'Босс гхс'
 			
-			save_user_data()
 			
 			await ctx.send(f'Вы успешно купили звание "Босс гхс"!')
 		else:
@@ -216,7 +193,6 @@ async def buy(ctx, zvaniebuy: int):
 # Выходим
 @bot.event
 async def on_disconnect():
-    update_user_data()
     sys.exit()
 
 # Запускаем наше чудо
