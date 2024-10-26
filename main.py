@@ -68,30 +68,12 @@ async def click(ctx):
     if user_id not in user_data:
         user_data[user_id] = {"points": 0, "level": 1}
     
-    async def on_click(interaction: discord.Interaction):
-        if interaction.user.id != user_id:
-            await interaction.response.send_message("Эта кнопка не для вас!", ephemeral=True)
-            return
-
-        click_points = random.randint(1, 5)
-        user_data[user_id]["points"] += click_points
-        save_user_data()
-
-        await interaction.response.edit_message(embed=create_embed(
-            title="Тап!",
-            description=f"Вы кликнули и получили {click_points} $REDCOIN! Всего $REDCOIN: {user_data[user_id]['points']}"
-        ))
-
-    button = Button(label="$REDCOIN", style=discord.ButtonStyle.primary)
-    button.callback = on_click
-
-    view = View()
-    view.add_item(button)
-
-    await ctx.send(embed=create_embed(
-        title="Клик!",
-        description="Нажмите кнопку, чтобы заработать $REDCOIN!"
-    ), view=view)
+    click_points = random.randint(1, 5)
+    user_data[user_id]["points"] += click_points
+        
+    save_user_data()
+    
+    await send_embed(ctx, "Тапаешь ты, тапаю я......", f"Вы получили {click_points} $REDCOIN!")
 
 # Делаем комманду для покупки нового уровня
 @bot.command()
@@ -205,7 +187,7 @@ async def addown(ctx, money):
 # Комманда с всякой нужной инфой (хелп)
 @bot.command()
 async def help(ctx):
-	await ctx.send(f'# Red Kombat by SG-Products\n# Комманды:\n# Тапалка:\n.click\n.levelup\n.stats\n# Листинг и тд.:\n.listing\n.listing_status\n.exchange_rate\n# Модерация:\n.ghs_ban\n.ghs_kick\n.say\n# Для создателя:\n.addown\n# Магазин:\n.shop\n.buy\n# Другое:\n.status\n.invite\n.credits')
+	await send_embed(ctx, "Помощь", f'# Red Kombat by SG-Products\n# Комманды:\n# Тапалка:\n.click\n.levelup\n.stats\n# Листинг и тд.:\n.listing\n.listing_status\n.exchange_rate\n# Модерация:\n.ghs_ban\n.ghs_kick\n.say\n# Для создателя:\n.addown\n# Магазин:\n.shop\n.buy\n# Другое:\n.status\n.invite\n.credits', "Комманды")
 
 # Магазин званий
 @bot.command()
